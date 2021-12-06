@@ -1,9 +1,11 @@
 from cpu_core import *
 from threading import *
 
-
+# Initialize the CPU (1 core, 4 threads)
 cpu = CpuCore()
 np = int(input('Select the number of processes to generate, or zero to quit: '))
+
+#  Generate the inputted number of programs from template files
 while np > 0:
     file_to_use = int(input('Select from available templates. Enter 1, 2, or 3: '))
     if file_to_use > 0:
@@ -19,8 +21,9 @@ while np > 0:
     else:
         print("invalid template selection")
 cpu.print()
-print("\nLoading generated processes into main memory")
-load_thread = Thread(target=cpu.load_ready_queue())
-load_thread.start()
-print("Beginning to schedule processes for execution\n")
-cpu.scheduler()
+print("\nRUNNING OS SIMULATOR\n")
+print("Loading generated processes into main memory")
+t = Thread(target=cpu.load_ready_queue())
+#t2 = Thread(target=cpu.scheduler())
+t.start()
+#t2.start()

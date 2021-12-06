@@ -61,23 +61,31 @@ class CpuCore:
     def scheduler(self):
         """Scheduling algorithm using Round Robin"""
         while len(self.ready_queue) > 0:
-            process = self.ready_queue.pop(0)
+            process = self.ready_queue.pop(0)         # Removes the first process from ready queue
             self.semaphore.acquire(blocking=False)    # Allows 4 threads to run simultaneously
             try:
-                process.set_run()
-                pid = process.get_pid()
-                t = Thread(target=self.run_process, args=(pid,))
+                process.set_run()        # Update process's state
+                pid = process.get_pid()  # Need pid to identify process
+                t = Thread(target=self.run_process, args=(pid,))    # Run process. Needs "," to be a tuple
                 t.start()
             finally:
                 self.semaphore.release()
+        #self.load_ready_queue()
 
     def load_ready_queue(self):
+        """Loads processes from new queue into ready queue until it is full. Then begins scheduling"""
         for process in self.new_queue:
             # Loads all the new processes into memory until it is full
             with self.memory_condition:
                 #  If there isn't enough room, wait until there is
                 while not self.load_to_memory(process.get_pid()):
                     self.memory_condition.wait()
+                self.semaphore.acquire(blocking=False)
+                try:
+                    t = Thread(target=self.scheduler())
+                    t.start()
+                finally:
+                    self.semaphore.release()
 
     def run_process(self, pid):
         """Runs the process and implements critical section resolving scheme"""
@@ -108,7 +116,7 @@ class CpuCore:
             t.start()
 
     def run_op(self, pid, operation):
-        """Determines operation type and executes it"""
+        """Determines operation type and executes it. Uses Round Robin algorithm"""
         duration = operation.get_cycle_length()
         if operation.get_name() == "CALCULATE":
             #  Determine whether the operation will finish within the time slice
@@ -135,17 +143,19 @@ class CpuCore:
                 self.interrupt(pid, random.randint(1, 10))  # interrupt the process for up to 10 seconds
                 print("Process %d is interrupted" % pid)
             count -= 1
+        print("Process %d finished CALCULATE operation" % pid)
 
     def interrupt(self, pid, duration):
         """Sets the process state to wait and simulates the time for I/O operation"""
         self.processes[pid].set_wait()
         time.sleep(duration * 0.01)  # Simulate the time for device driver to perform I/O operation
-        print("Process %d finished I/O operation in %f seconds" % (pid, duration))
+        print("Process %d finished I/O operation" % pid)
 
     def spawn_child(self, pid, duration):
         """Sets the process state to wait and spawns a new child process"""
         self.processes[pid].set_wait()
         child_pid = self.generate_from_file('templates/program_file.xml')
+        self.new_queue.append(self.processes[child_pid])
         print("Process %d spawned from parent and added to new queue" % child_pid)
         time.sleep(duration * 0.01)
 
@@ -153,6 +163,7 @@ class CpuCore:
         return self.processes.index(process)
 
     def print(self):
+        """Prints the processes with their operation list and CPU times"""
         for p in self.processes:
             print("\nProcess #", self.get_process_id(p))
             for o in p.operations:
