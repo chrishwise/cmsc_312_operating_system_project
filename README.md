@@ -15,3 +15,11 @@ Select from available templates. Enter 1 or 2:
 Processes are generated from xml template and then printed
 
 Round robin is called to print but I have been struggling with getting it to work properly. Tried to implement it so that only critical sections need to be evaluated for scheduling.
+
+Phase 2:
+Completely redid all of my scheduler
+Added multi-threading functionality using pythons threading module
+Used semaphore with initial value 4 to simulate 4 threads of a CPU
+Used a lock for critical section resolving scheme
+Added memory to the template files and added functionality to load new process's to the ready queue
+Struggling to debug after finally finishing all of Phase 2's required functionality
