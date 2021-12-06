@@ -1,0 +1,24 @@
+<template>
+	<memory>400</memory>
+	<operation>
+		I/O
+		<critical> 1 </critical>
+		<min> 5 </min>
+		<max> 20 </max>
+	</operation>
+	<operation>	
+		CALCULATE
+		<min> 50 </min>
+		<max> 100 </max>
+	</operation>
+	<operation>	
+		FORK
+		<min> 30 </min>
+		<max> 60 </max>
+	</operation>
+	<operation>	
+		CALCULATE
+		<min> 20 </min>
+		<max> 40 </max>
+	</operation>
+</template>
