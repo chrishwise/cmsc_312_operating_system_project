@@ -2,7 +2,6 @@
 	<memory>200</memory>
 	<operation>
 		CALCULATE
-		<critical> 1 </critical>
 		<min> 5 </min>
 		<max> 20 </max>
 	</operation>
@@ -17,8 +16,9 @@
 		<max> 15 </max>
 	</operation>
 	<operation>
-		CALCULATE
-		<min> 30 </min>
+        CALCULATE
+		<critical> 1 </critical>
+        <min> 30 </min>
 		<max> 60 </max>
 	</operation>
 </template>
