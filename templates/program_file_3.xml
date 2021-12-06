@@ -16,9 +16,9 @@
 		<max> 15 </max>
 	</operation>
 	<operation>
-        CALCULATE
+		CALCULATE
 		<critical> 1 </critical>
-        <min> 30 </min>
+		<min> 30 </min>
 		<max> 60 </max>
 	</operation>
 </template>
