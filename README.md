@@ -23,3 +23,7 @@ Used semaphore with initial value 4 to simulate 4 threads of a CPU
 Used a lock for critical section resolving scheme
 Added memory to the template files and added functionality to load new process's to the ready queue
 Struggling to debug after finally finishing all of Phase 2's required functionality
+
+USER INSTRUCTIONS:
+run main.py
+follow the prompts to generate and run processes
