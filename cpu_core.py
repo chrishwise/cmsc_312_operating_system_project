@@ -1,4 +1,6 @@
 import random
+import threading
+
 from process import Process
 from operation import Operation
 from xml.etree import ElementTree
@@ -7,7 +9,7 @@ import time
 
 
 class CpuCore:
-    time_slice = 3
+    time_slice = 30
 
     def __init__(self):
         self.processes = []
@@ -20,6 +22,7 @@ class CpuCore:
         self.memory_lock = Lock()
         self.memory_condition = Condition(self.memory_lock)
         self.critical_lock = Lock()
+        self.semaphore = Semaphore(4)
 
     def generate_from_file(self, file_name):
         """Parses the given file and adds all of it's operations to a new process and adds it to processes list"""
@@ -57,25 +60,24 @@ class CpuCore:
 
     def scheduler(self):
         """Scheduling algorithm using Round Robin"""
-        semaphore = Semaphore(4)
-
-        #  Uses one of the threads to load any new processes into memory
-        with semaphore:
-            while len(self.new_queue) > 0:
-                with self.memory_condition:
-                    new_process = self.new_queue.pop(0)
-                    #  If there isn't enough room, wait until there is
-                    if not self.load_to_memory(new_process.get_pid()):
-                        self.new_queue.insert(0, new_process)
-                        self.memory_lock.wait()
-
         while len(self.ready_queue) > 0:
             process = self.ready_queue.pop(0)
-            with semaphore:  # Allows 4 threads to run simultaneously
+            self.semaphore.acquire(blocking=False)    # Allows 4 threads to run simultaneously
+            try:
                 process.set_run()
                 pid = process.get_pid()
                 t = Thread(target=self.run_process, args=(pid,))
                 t.start()
+            finally:
+                self.semaphore.release()
+
+    def load_ready_queue(self):
+        for process in self.new_queue:
+            # Loads all the new processes into memory until it is full
+            with self.memory_condition:
+                #  If there isn't enough room, wait until there is
+                while not self.load_to_memory(process.get_pid()):
+                    self.memory_condition.wait()
 
     def run_process(self, pid):
         """Runs the process and implements critical section resolving scheme"""
@@ -83,9 +85,9 @@ class CpuCore:
 
         #  Critical Section resolving scheme
         if operation.is_critical():
-            with self._critical_lock:  # Ensures no other process is in its critical section
+            with self.critical_lock:  # Ensures no other process is in its critical section
                 print("Running Process %d's critical %s operation" % (pid, operation.get_name()))
-                self.run_op(operation, pid)
+                self.run_op(pid, operation)
         else:
             print("Running Process %d: %s operation" % (pid, operation.get_name()))
             self.run_op(pid, operation)
@@ -94,12 +96,14 @@ class CpuCore:
         if len(self.processes[pid].operations) == 0:
             self.processes[pid].set_exit()
             self.memory_available += self.processes[pid].get_memory()  # Free up memory
-            print("Process %d has finished execution in %f seconds" % (pid, self.processes[pid].get_clock_time()))
-            self._memory_lock.notify()  # Notifies the memory lock that more memory is available
+            print("Process %d has finished execution in %f CPU cycles" % (pid, self.processes[pid].get_clock_time()))
+            self.memory_condition.notify()  # Notifies the memory lock that more memory is available
 
         #  Else, re-add the process to the ready queue for scheduling
         else:
             self.ready_queue.append(self.processes[pid])
+            t = Thread(target=self.scheduler())
+            t.start()
 
     def run_op(self, pid, operation):
         """Determines operation type and executes it"""
@@ -122,25 +126,26 @@ class CpuCore:
         """Simulate occupation of the CPU for the given duration"""
         count = duration
         while count > 0:
-            time.sleep(1)
+            time.sleep(.01)
             self.processes[pid].increment_clock_time(1)  # Updates process's PCB
             #  Fixed probability of eternal I/O event
-            if random.random() <= 0.03:  # 3% chance
+            if random.random() <= 0.01:  # 1% chance
                 self.interrupt(pid, random.randint(1, 10))  # interrupt the process for up to 10 seconds
+                print("Process %d is interrupted" % pid)
             count -= 1
-        print("\nCPU occupied for %s seconds" % duration)
 
     def interrupt(self, pid, duration):
         """Sets the process state to wait and simulates the time for I/O operation"""
         self.processes[pid].set_wait()
-        time.sleep(duration)  # Simulate the time for device driver to perform I/O operation
+        time.sleep(duration * 0.01)  # Simulate the time for device driver to perform I/O operation
+        print("Process %d finished I/O operation in %f seconds" % (pid, duration))
 
     def spawn_child(self, pid, duration):
         """Sets the process state to wait and spawns a new child process"""
         self.processes[pid].set_wait()
         child_pid = self.generate_from_file('templates/program_file.xml')
         print("Process %d spawned from parent and added to new queue" % child_pid)
-        time.sleep(duration)
+        time.sleep(duration * 0.01)
 
     def get_process_id(self, process):
         return self.processes.index(process)
