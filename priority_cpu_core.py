@@ -1,4 +1,4 @@
-from datetime import time
+import time
 from random import random
 from threading import Lock, Condition, Semaphore, Thread
 
@@ -31,7 +31,7 @@ class PriorityCpuCore:
                     self.memory_condition.wait()
             #  Allow 4 threads to run concurrently
             if self.semaphore.acquire(blocking=False):
-                t = Thread(target=self.scheduler())
+                t = Thread(target=self.priority_scheduler())
                 t.start()
                 self.semaphore.release()
 
@@ -87,22 +87,15 @@ class PriorityCpuCore:
 
         #  Else, re-add the process to the ready queue for scheduling
         else:
-            self.ready_queue.append(self.processes[pid])
+            self.priority_queue.append(self.processes[pid])
             self.load_ready_queue()
 
     def run_op(self, pid, operation):
         """Determines operation type and executes it. Uses Round Robin algorithm"""
         duration = operation.get_cycle_length()
         if operation.get_name() == "CALCULATE":
-            #  Determine whether the operation will finish within the time slice
-            if duration <= self.time_slice:
-                self.occupy_cpu(pid, duration)
-                self.window.log(f"\nProcess {pid} finished CALCULATE operation")
-            else:  # Operation won't finish
-                duration = self.time_slice
-                self.occupy_cpu(pid, duration)
-                operation.decrement_cycle_length(duration)  # Update remaining duration
-                self.processes[pid].operations.insert(0, operation)  # Re-add operation to process
+            self.occupy_cpu(pid, duration)
+            self.window.log(f"\nProcess {pid} finished CALCULATE operation")
         elif operation.get_name() == "I/O":
             self.interrupt(pid, duration)
             self.window.log(f"\nProcess {pid} finished I/O operation")
