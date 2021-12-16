@@ -11,7 +11,8 @@ import time
 class CpuCore:
     time_slice = 30
 
-    def __init__(self):
+    def __init__(self, window):
+        self.window = window
         self.processes = []
         self.new_queue = []
         self.ready_queue = []
@@ -30,12 +31,12 @@ class CpuCore:
         root = tree.getroot()
         operations = root.findall('operation')
         memory = int(root.find('memory').text)
-        critical = False
         new_process = Process(self.pid_counter, memory)
         for o in operations:
+            critical = False        # Bug fix. critical must be set false for each operation
             name = o.text.strip()
             has_critical = o.find('critical')
-            if has_critical is None:    # Bug fix. Python elements return None when they are found without sub-elements
+            if not (has_critical is None):    # Bug fix. Element.find() returns None when not found
                 critical = True
             min_time = int(o.find('min').text)
             max_time = int(o.find('max').text)
@@ -43,6 +44,7 @@ class CpuCore:
             new_process.add_operation(new_operation)
         self.processes.append(new_process)
         self.new_queue.append(new_process)
+        self.window.add_process(self.pid_counter)    # Adds the process to the process frame in AppWindow
         self.pid_counter += 1
         return new_process.get_pid()
 
@@ -50,42 +52,37 @@ class CpuCore:
         """Adds the process to the ready queue and updates available memory if there is enough space"""
         if self.processes[pid].get_memory() < self.memory_available:
             self.processes[pid].set_ready()
+            self.processes[pid].print(pid)     # DEBUG
             self.ready_queue.append(self.processes[pid])
             self.memory_available -= self.processes[pid].get_memory()
-            print("Process %d loaded into memory" % pid)
+            self.window.log(f"\nProcess {pid} loaded into memory")
+
             return True
         else:
-            print("Process %d is waiting for memory to become available" % pid)
+            self.window.log(f"\nProcess {pid} is waiting for memory to become available")
             return False
-
-    def scheduler(self):
-        """Scheduling algorithm using Round Robin"""
-        while len(self.ready_queue) > 0:
-            process = self.ready_queue.pop(0)         # Removes the first process from ready queue
-            self.semaphore.acquire(blocking=False)    # Allows 4 threads to run simultaneously
-            try:
-                process.set_run()        # Update process's state
-                pid = process.get_pid()  # Need pid to identify process
-                t = Thread(target=self.run_process, args=(pid,))    # Run process. Needs "," to be a tuple
-                t.start()
-            finally:
-                self.semaphore.release()
-        #self.load_ready_queue()
 
     def load_ready_queue(self):
         """Loads processes from new queue into ready queue until it is full. Then begins scheduling"""
-        for process in self.new_queue:
-            # Loads all the new processes into memory until it is full
+        while len(self.new_queue) > 0:
+            process = self.new_queue.pop(0)
             with self.memory_condition:
                 #  If there isn't enough room, wait until there is
                 while not self.load_to_memory(process.get_pid()):
                     self.memory_condition.wait()
-                self.semaphore.acquire(blocking=False)
-                try:
-                    t = Thread(target=self.scheduler())
-                    t.start()
-                finally:
-                    self.semaphore.release()
+            #  Allow 4 threads to run concurrently
+            if self.semaphore.acquire(blocking=False):
+                t = Thread(target=self.scheduler())
+                t.start()
+                self.semaphore.release()
+
+    def scheduler(self):
+        """Scheduling algorithm using Round Robin"""
+        while len(self.ready_queue) > 0:
+            process = self.ready_queue.pop(0)           # Removes the first process from ready queue
+            pid = process.get_pid()                     # Need pid to identify process
+            self.processes[pid].set_run()               # Update process's state
+            self.run_process(pid)                       # Run the process
 
     def run_process(self, pid):
         """Runs the process and implements critical section resolving scheme"""
@@ -94,26 +91,24 @@ class CpuCore:
         #  Critical Section resolving scheme
         if operation.is_critical():
             with self.critical_lock:  # Ensures no other process is in its critical section
-                print("Running Process %d's critical %s operation" % (pid, operation.get_name()))
+                self.window.log("\nRunning Process %d's critical %s operation" % (pid, operation.get_name()))
                 self.run_op(pid, operation)
         else:
-            print("Running Process %d: %s operation" % (pid, operation.get_name()))
+            self.window.log("\nRunning Process %d: %s operation" % (pid, operation.get_name()))
             self.run_op(pid, operation)
 
         #  If there are no more operations to run, exit
         if len(self.processes[pid].operations) == 0:
             self.processes[pid].set_exit()
             self.memory_available += self.processes[pid].get_memory()  # Free up memory
-            print("Process %d has finished execution in %f CPU cycles" % (pid, self.processes[pid].get_clock_time()))
-            self.memory_condition.acquire()
-            self.memory_condition.notify()        # Notifies the condition variable that more memory is available
-            self.memory_condition.release()
+            self.window.log(f"\nProcess {pid} has finished execution in {self.processes[pid].get_clock_time()} CPU cycles")
+            with self.memory_condition:
+                self.memory_condition.notify()  # Notifies the condition variable that more memory is available
 
         #  Else, re-add the process to the ready queue for scheduling
         else:
             self.ready_queue.append(self.processes[pid])
-            t = Thread(target=self.scheduler())
-            t.start()
+            self.load_ready_queue()
 
     def run_op(self, pid, operation):
         """Determines operation type and executes it. Uses Round Robin algorithm"""
@@ -122,6 +117,7 @@ class CpuCore:
             #  Determine whether the operation will finish within the time slice
             if duration <= self.time_slice:
                 self.occupy_cpu(pid, duration)
+                self.window.log(f"\nProcess {pid} finished CALCULATE operation")
             else:  # Operation won't finish
                 duration = self.time_slice
                 self.occupy_cpu(pid, duration)
@@ -129,6 +125,7 @@ class CpuCore:
                 self.processes[pid].operations.insert(0, operation)  # Re-add operation to process
         elif operation.get_name() == "I/O":
             self.interrupt(pid, duration)
+            self.window.log(f"\nProcess {pid} finished I/O operation")
         elif operation.get_name() == "FORK":
             self.spawn_child(pid, duration)
 
@@ -138,25 +135,24 @@ class CpuCore:
         while count > 0:
             time.sleep(.01)
             self.processes[pid].increment_clock_time(1)  # Updates process's PCB
+
             #  Fixed probability of eternal I/O event
             if random.random() <= 0.01:  # 1% chance
-                self.interrupt(pid, random.randint(1, 10))  # interrupt the process for up to 10 seconds
-                print("Process %d is interrupted" % pid)
+                self.interrupt(pid, random.randint(1, 10))  # interrupt the process for up to 0.10 seconds
+                self.window.log(f"\nProcess {pid} is interrupted")
             count -= 1
-        print("Process %d finished CALCULATE operation" % pid)
 
     def interrupt(self, pid, duration):
         """Sets the process state to wait and simulates the time for I/O operation"""
         self.processes[pid].set_wait()
         time.sleep(duration * 0.01)  # Simulate the time for device driver to perform I/O operation
-        print("Process %d finished I/O operation" % pid)
 
     def spawn_child(self, pid, duration):
         """Sets the process state to wait and spawns a new child process"""
         self.processes[pid].set_wait()
         child_pid = self.generate_from_file('templates/program_file.xml')
         self.new_queue.append(self.processes[child_pid])
-        print("Process %d spawned from parent and added to new queue" % child_pid)
+        self.window.log(f"\nProcess {pid} spawned from parent and added to new queue")
         time.sleep(duration * 0.01)
 
     def get_process_id(self, process):

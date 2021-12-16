@@ -61,4 +61,15 @@ class Process(object):
 			seconds += o.get_cycle_length()
 		return seconds
 
+	def print(self, pid):
+		"""Prints the process's'operations and CPU times"""
+		print("Process #", pid)
+		for o in self.operations:
+			operation_name = o.get_name()
+			operation_cycle_length = str(o.get_cycle_length())
+			if o.is_critical():
+				s = f"critical {operation_name}:\t {operation_cycle_length}"
+			else:
+				s = f"\t{operation_name}:\t {operation_cycle_length}"
+			print(s)
 
