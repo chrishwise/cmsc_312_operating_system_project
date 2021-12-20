@@ -49,7 +49,7 @@ class AppWindow(tk.Frame):
     def run(self):
         thread = Thread(target=self.cpu.load_ready_queue())
         thread.start()
-        thread.join()
+        #thread.join()
 
     def add_process(self, pid):
         p = tk.Text(master=self.processes_frame, width=10, height=5)
