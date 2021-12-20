@@ -14,7 +14,7 @@ class PriorityCpuCore:
         self.exit_queue = []
         self.pid_counter = 0
         self.memory_available = 1024
-        self.memory_lock = Lock()
+        #self.memory_lock = Lock()
         self.memory_condition = Condition(self.memory_lock)
         self.critical_lock = Lock()
         self.semaphore = Semaphore(4)
