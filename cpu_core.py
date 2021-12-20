@@ -91,7 +91,7 @@ class CpuCore:
         #  Critical Section resolving scheme
         if operation.is_critical():
             with self.critical_lock:  # Ensures no other process is in its critical section
-                self.window.log(f"\nRunning Process %d's critical %s operation" % (pid, operation.get_name()))
+                self.window.log(f"\nRunning Process {pid}'s critical {operation.get_name()} operation")
                 self.run_op(pid, operation)
         else:
             self.window.log("\nRunning Process %d: %s operation" % (pid, operation.get_name()))
