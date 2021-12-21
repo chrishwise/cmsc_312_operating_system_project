@@ -26,7 +26,7 @@ class CpuCore:
         self.semaphore = Semaphore(4)
 
     def generate_from_file(self, file_name):
-        """Parses the given file and adds all of it's operations to a new process and adds it to processes list"""
+        """Parses the given file and adds all of its operations to a new process and adds it to processes list"""
         tree = ElementTree.parse(file_name)
         root = tree.getroot()
         operations = root.findall('operation')
@@ -82,7 +82,8 @@ class CpuCore:
         while len(self.ready_queue) > 0:
             process = self.ready_queue.pop(0)           # Removes the first process from ready queue
             pid = process.get_pid()                     # Need pid to identify process
-            self.processes[pid].set_run()               # Update process's state
+            self.processes[pid].set_run()
+            self.window.set_running(pid)                # Update process's state
             self.run_process(pid)                       # Run the process
 
     def run_process(self, pid):
@@ -102,6 +103,7 @@ class CpuCore:
         if len(self.processes[pid].operations) == 0:
             self.processes[pid].set_exit()
             self.memory_available += self.processes[pid].get_memory()  # Free up memory
+            self.window.set_finished(pid)            # Updates color in processes frame
             self.window.log(f"\nProcess {pid} has finished execution in {self.processes[pid].get_clock_time()} CPU cycles")
             with self.memory_condition:
                 self.memory_condition.notify()  # Notifies the condition variable that more memory is available
@@ -146,13 +148,14 @@ class CpuCore:
     def interrupt(self, pid, duration):
         """Sets the process state to wait and simulates the time for I/O operation"""
         self.processes[pid].set_wait()
+        self.window.set_waiting(pid)
         time.sleep(duration * 0.01)  # Simulate the time for device driver to perform I/O operation
 
     def spawn_child(self, pid, duration):
         """Sets the process state to wait and spawns a new child process"""
         self.processes[pid].set_wait()
+        self.window.set_waiting(pid)
         child_pid = self.generate_from_file('templates/program_file.xml')
-        self.new_queue.append(self.processes[child_pid])
         self.window.log(f"\nProcess {child_pid} spawned from parent and added to new queue")
         time.sleep(duration * 0.01)
 

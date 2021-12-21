@@ -35,6 +35,7 @@ class AppWindow(tk.Frame):
         # Create a frame to display created processes
         self.processes_frame = tk.Frame(master=root, width=100, height=10, relief=tk.SUNKEN)
         self.processes_frame.grid(row=2, column=0, columnspan=3)
+        self.processes = []
 
         # Create a button to run processes
         self.run_btn = tk.Button(master=root, text="Run", command=self.run)
@@ -52,9 +53,24 @@ class AppWindow(tk.Frame):
         # thread.join()
 
     def add_process(self, pid):
-        p = tk.Text(master=self.processes_frame, width=10, height=5)
+        # Create frame for border color
+        f = tk.Frame(master=self.processes_frame, background="blue")
+        # Create text inside frame
+        p = tk.Text(master=f, width=10, height=5)
         p.insert(1.0, f"Process {pid}")
-        p.pack(side=tk.LEFT)
+        p.pack(side=tk.LEFT, padx=2, pady=2)
+        # Add frame to processes frame
+        f.pack(side=tk.LEFT)
+        self.processes.append(f)
+
+    def set_running(self, pid):
+        self.processes[pid].config(background="green")
+
+    def set_waiting(self, pid):
+        self.processes[pid].config(background="yellow")
+
+    def set_finished(self, pid):
+        self.processes[pid].config(background="red")
 
     def log(self, string):
         self.console.insert('end', string)
