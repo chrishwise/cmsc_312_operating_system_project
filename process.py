@@ -61,4 +61,15 @@ class Process(object):
 			seconds += o.get_cycle_length()
 		return seconds
 
+	def print(self):
+		print(f"\nProcess #{self.get_pid()}")
+		print(f"Memory: {self.get_memory()}")
+		for o in self.operations:
+			if o.is_critical():
+				print("Critical")
+			operation_name = o.get_name()
+			operation_cycle_length = str(o.get_cycle_length())
+			s = "%10s:\t%s" % (operation_name, operation_cycle_length)
+			print(s.center(20, ' '))
+
 

@@ -52,7 +52,7 @@ class CpuCore:
         """Adds the process to the ready queue and updates available memory if there is enough space"""
         if self.processes[pid].get_memory() < self.memory_available:
             self.processes[pid].set_ready()
-            self.processes[pid].print(pid)     # DEBUG
+            self.processes[pid].print()     # DEBUG
             self.ready_queue.append(self.processes[pid])
             self.memory_available -= self.processes[pid].get_memory()
             self.window.log(f"\nProcess {pid} loaded into memory")
@@ -64,17 +64,18 @@ class CpuCore:
 
     def load_ready_queue(self):
         """Loads processes from new queue into ready queue until it is full. Then begins scheduling"""
-        while len(self.new_queue) > 0:
-            process = self.new_queue.pop(0)
-            with self.memory_condition:
-                #  If there isn't enough room, wait until there is
-                while not self.load_to_memory(process.get_pid()):
-                    self.memory_condition.wait()
-            #  Allow 4 threads to run concurrently
-            if self.semaphore.acquire(blocking=False):
-                t = Thread(target=self.scheduler())
-                t.start()
-                self.semaphore.release()
+        while True:
+            if len(self.new_queue) > 0:
+                #  Allow 4 threads to run concurrently
+                if self.semaphore.acquire():
+                    process = self.new_queue.pop(0)
+                    with self.memory_condition:
+                        #  If there isn't enough room, wait until there is
+                        while not self.load_to_memory(process.get_pid()):
+                            self.memory_condition.wait()
+                    t = Thread(target=self.scheduler)
+                    t.start()
+                    self.semaphore.release()
 
     def scheduler(self):
         """Scheduling algorithm using Round Robin"""
@@ -108,7 +109,7 @@ class CpuCore:
         #  Else, re-add the process to the ready queue for scheduling
         else:
             self.ready_queue.append(self.processes[pid])
-            self.load_ready_queue()
+            self.scheduler()
 
     def run_op(self, pid, operation):
         """Determines operation type and executes it. Uses Round Robin algorithm"""
@@ -152,7 +153,7 @@ class CpuCore:
         self.processes[pid].set_wait()
         child_pid = self.generate_from_file('templates/program_file.xml')
         self.new_queue.append(self.processes[child_pid])
-        self.window.log(f"\nProcess {pid} spawned from parent and added to new queue")
+        self.window.log(f"\nProcess {child_pid} spawned from parent and added to new queue")
         time.sleep(duration * 0.01)
 
     def get_process_id(self, process):
