@@ -12,8 +12,6 @@ class AppWindow(tk.Frame):
         # Create a new window
         super(AppWindow, self).__init__(master)
         root.title("Operating System Simulator")
-        # root.rowconfigure(0, 1, 2, 3, 4, minsize=50, weight=1)
-        # root.columnconfigure([0, 1, 2], minsize=50, weight=1)
 
         # Initialize the CPU (1 core, 4 threads)
         self.cpu = CpuCore(self)

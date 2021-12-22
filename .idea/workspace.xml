@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="caa93e8f-e846-49c3-8509-f2a88062fa04" name="Changes" comment="New comments highlight 2 interprocess communication methods">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cpu_core.py" beforeDir="false" afterPath="$PROJECT_DIR$/cpu_core.py" afterDir="false" />
+    <list default="true" id="caa93e8f-e846-49c3-8509-f2a88062fa04" name="Changes" comment="Multi-level parent child relationships">
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/process.py" beforeDir="false" afterPath="$PROJECT_DIR$/process.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/priority_cpu_core.py" beforeDir="false" afterPath="$PROJECT_DIR$/priority_cpu_core.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -114,7 +112,14 @@
       <option name="project" value="LOCAL" />
       <updated>1640135338055</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Multi-level parent child relationships">
+      <created>1640151267890</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1640151267890</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -134,6 +139,7 @@
     <MESSAGE value="UI updates color to show PCB state. Last process won't finish if it is a spawned process" />
     <MESSAGE value="Fully functional. Spawned children run without issue. New processes can be generated while running" />
     <MESSAGE value="New comments highlight 2 interprocess communication methods" />
-    <option name="LAST_COMMIT_MESSAGE" value="New comments highlight 2 interprocess communication methods" />
+    <MESSAGE value="Multi-level parent child relationships" />
+    <option name="LAST_COMMIT_MESSAGE" value="Multi-level parent child relationships" />
   </component>
 </project>
