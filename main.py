@@ -36,6 +36,7 @@ class AppWindow(tk.Frame):
         self.processes_frame = tk.Frame(master=root, width=100, height=10, relief=tk.SUNKEN)
         self.processes_frame.grid(row=2, column=0, columnspan=3)
         self.processes = []
+        self.frames = []
 
         # Create a button to run processes
         self.run_btn = tk.Button(master=root, text="Run", command=self.run)
@@ -58,23 +59,28 @@ class AppWindow(tk.Frame):
         # Create text inside frame
         p = tk.Text(master=f, width=10, height=5)
         p.insert(1.0, f"Process {pid}")
-        p.pack(side=tk.LEFT, padx=2, pady=2)
+        p.pack(side=tk.LEFT, padx=1, pady=1)
         # Add frame to processes frame
         f.pack(side=tk.LEFT)
-        self.processes.append(f)
+        self.processes.append(p)
+        self.frames.append(f)
 
     def set_running(self, pid):
-        self.processes[pid].config(background="green")
+        self.frames[pid].config(background="green")
 
     def set_waiting(self, pid):
-        self.processes[pid].config(background="yellow")
+        self.frames[pid].config(background="yellow")
 
     def set_finished(self, pid):
-        self.processes[pid].config(background="red")
+        self.frames[pid].config(background="red")
 
     def log(self, string):
         self.console.insert('end', string)
         print(string)
+
+    def update_child(self, child_pid, parent_pid):
+        child_frame = self.processes[child_pid]
+        child_frame.insert(2.0, f"\n\nParent: \nProcess {parent_pid}")
 
 
 application = AppWindow(root)

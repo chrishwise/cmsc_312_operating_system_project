@@ -13,6 +13,8 @@ class CpuCore:
 
     def __init__(self, window):
         self.window = window
+        # Interprocess communication method using shared data.
+        # All processes share queues, semaphores, condition variables, and locks
         self.processes = []
         self.new_queue = []
         self.ready_queue = []
@@ -31,7 +33,7 @@ class CpuCore:
         root = tree.getroot()
         operations = root.findall('operation')
         memory = int(root.find('memory').text)
-        new_process = Process(self.pid_counter, memory)
+        new_process = Process(self.pid_counter, memory, file_name)
         for o in operations:
             critical = False        # Bug fix. critical must be set false for each operation
             name = o.text.strip()
@@ -50,13 +52,13 @@ class CpuCore:
 
     def load_to_memory(self, pid):
         """Adds the process to the ready queue and updates available memory if there is enough space"""
+        # Resource-request algorithm: check that requested resource is < available
         if self.processes[pid].get_memory() < self.memory_available:
             self.processes[pid].set_ready()
             self.processes[pid].print()     # DEBUG
             self.ready_queue.append(self.processes[pid])
             self.memory_available -= self.processes[pid].get_memory()
             self.window.log(f"\nProcess {pid} loaded into memory")
-
             return True
         else:
             self.window.log(f"\nProcess {pid} is waiting for memory to become available")
@@ -73,8 +75,9 @@ class CpuCore:
                 with self.semaphore:
                     process = self.new_queue.pop(0)
                     # Interprocess communication using message passing.
+                    # Deadlock avoidance algorithm - resource request algorithm
                     with self.memory_condition:
-                        #  If there isn't enough room, wait until another thread notifies itself exiting memory
+                        #  If there isn't enough room, wait until another thread notifies that it's exiting memory
                         while not self.load_to_memory(process.get_pid()):
                             self.memory_condition.wait()
                     t = Thread(target=self.scheduler)
@@ -85,8 +88,8 @@ class CpuCore:
         while len(self.ready_queue) > 0:
             process = self.ready_queue.pop(0)           # Removes the first process from ready queue
             pid = process.get_pid()                     # Need pid to identify process
-            self.processes[pid].set_run()
-            self.window.set_running(pid)                # Update process's state
+            self.processes[pid].set_run()               # Update process's state
+            self.window.set_running(pid)                # Update GUI
             self.run_process(pid)                       # Run the process
 
     def run_process(self, pid):
@@ -106,7 +109,7 @@ class CpuCore:
         if len(self.processes[pid].operations) == 0:
             self.processes[pid].set_exit()
             self.memory_available += self.processes[pid].get_memory()  # Free up memory
-            self.window.set_finished(pid)            # Updates color in processes frame
+            self.window.set_finished(pid)            # Update GUI
             self.window.log(f"\nProcess {pid} has finished execution in {self.processes[pid].get_clock_time()} CPU cycles")
             with self.memory_condition:
                 self.memory_condition.notify()  # Notifies the condition variable that more memory is available
@@ -157,7 +160,15 @@ class CpuCore:
         """Sets the process state to wait and spawns a new child process"""
         self.processes[pid].set_wait()
         self.window.set_waiting(pid)
-        child_pid = self.generate_from_file('templates/program_file.xml')
+        # Parent-child management
+        # Multi-level parent-child relationship. Program file 3 spawns program file 2 which spawns program file 1
+        if self.processes[pid].file_name == 'templates/program_file_2.xml':
+            child_pid = self.generate_from_file('templates/program_file.xml')
+        elif self.processes[pid].file_name == 'templates/program_file_3.xml':
+            child_pid = self.generate_from_file('templates/program_file_2.xml')
+        self.processes[pid].add_child(self.processes[child_pid])
+        self.window.update_child(child_pid, pid)   # update GUI
+
         self.window.log(f"\nProcess {child_pid} spawned from parent and added to new queue")
         time.sleep(duration * 0.01)
 

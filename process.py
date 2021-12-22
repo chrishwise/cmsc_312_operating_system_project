@@ -3,7 +3,7 @@ import process_control_block as pcb
 
 class Process(object):
 
-	def __init__(self, pid, memory):
+	def __init__(self, pid, memory, fn):
 		memory_req = memory
 		clock_time_elapsed = 0
 		pc = 0
@@ -12,24 +12,14 @@ class Process(object):
 		process_state = "NEW"
 		self.pcb = pcb.ProcessControlBlock(pointer, process_state, pid, pc, registers, memory_req, clock_time_elapsed)
 		self.operations = []
+		self.children = []
+		self.file_name = fn
 
 	def add_operation(self, operation):
 		self.operations.append(operation)
 
-	def is_new(self):
-		if self.pcb.state == "NEW":
-			return True
-		else:
-			return False
-
 	def set_ready(self):
 		self.pcb.state = "READY"
-
-	def is_ready(self):
-		if self.pcb.state == "READY":
-			return True
-		else:
-			return False
 
 	def set_run(self):
 		self.pcb.state = "RUN"
@@ -60,6 +50,9 @@ class Process(object):
 		for o in self.operations:
 			seconds += o.get_cycle_length()
 		return seconds
+
+	def add_child(self, child_process):
+		self.children.append(child_process)
 
 	def print(self):
 		print(f"\nProcess #{self.get_pid()}")
