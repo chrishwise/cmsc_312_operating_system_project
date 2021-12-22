@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="caa93e8f-e846-49c3-8509-f2a88062fa04" name="Changes" comment="UI updates color to show PCB state. Last process won't finish if it is a spawned process">
+    <list default="true" id="caa93e8f-e846-49c3-8509-f2a88062fa04" name="Changes" comment="Fully functional. Spawned children run without issue. New processes can be generated while running">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cpu_core.py" beforeDir="false" afterPath="$PROJECT_DIR$/cpu_core.py" afterDir="false" />
     </list>
@@ -98,7 +98,14 @@
       <option name="project" value="LOCAL" />
       <updated>1640126942713</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Fully functional. Spawned children run without issue. New processes can be generated while running">
+      <created>1640132792454</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1640132792454</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -116,6 +123,7 @@
     <MESSAGE value="Fixing project branching by updating main" />
     <MESSAGE value="Massive bug find! thread targets had () after function name, preventing proper multithreading.&#10;&#10;UI console now updates live" />
     <MESSAGE value="UI updates color to show PCB state. Last process won't finish if it is a spawned process" />
-    <option name="LAST_COMMIT_MESSAGE" value="UI updates color to show PCB state. Last process won't finish if it is a spawned process" />
+    <MESSAGE value="Fully functional. Spawned children run without issue. New processes can be generated while running" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fully functional. Spawned children run without issue. New processes can be generated while running" />
   </component>
 </project>

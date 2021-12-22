@@ -65,13 +65,16 @@ class CpuCore:
     def load_ready_queue(self):
         """Loads processes from new queue into ready queue until it is full. Then begins scheduling"""
         while True:
+            # Interprocess communication method using shared data.
+            # All processes share queues, semaphores, condition variables, and locks
             time.sleep(.01)
             if len(self.new_queue) > 0:
-                #  Allow 4 threads to run concurrently
+                #  Semaphore allow up to 4 threads to run concurrently.
                 with self.semaphore:
                     process = self.new_queue.pop(0)
+                    # Interprocess communication using message passing.
                     with self.memory_condition:
-                        #  If there isn't enough room, wait until there is
+                        #  If there isn't enough room, wait until another thread notifies itself exiting memory
                         while not self.load_to_memory(process.get_pid()):
                             self.memory_condition.wait()
                     t = Thread(target=self.scheduler)
