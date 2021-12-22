@@ -19,7 +19,6 @@ class CpuCore:
         self.new_queue = []
         self.ready_queue = []
         self.waiting_queue = []
-        self.exit_queue = []
         self.pid_counter = 0
         self.memory_available = 1024
         self.memory_lock = Lock()
@@ -74,12 +73,11 @@ class CpuCore:
                 #  Semaphore allow up to 4 threads to run concurrently.
                 with self.semaphore:
                     process = self.new_queue.pop(0)
-                    # Interprocess communication using message passing.
                     # Deadlock avoidance algorithm - resource request algorithm
                     with self.memory_condition:
                         #  If there isn't enough room, wait until another thread notifies that it's exiting memory
                         while not self.load_to_memory(process.get_pid()):
-                            self.memory_condition.wait()
+                            self.memory_condition.wait()    # Interprocess communication using message passing
                     t = Thread(target=self.scheduler)
                     t.start()
 
