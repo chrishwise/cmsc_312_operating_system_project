@@ -65,9 +65,10 @@ class CpuCore:
     def load_ready_queue(self):
         """Loads processes from new queue into ready queue until it is full. Then begins scheduling"""
         while True:
+            time.sleep(.01)
             if len(self.new_queue) > 0:
                 #  Allow 4 threads to run concurrently
-                if self.semaphore.acquire():
+                with self.semaphore:
                     process = self.new_queue.pop(0)
                     with self.memory_condition:
                         #  If there isn't enough room, wait until there is
@@ -75,7 +76,6 @@ class CpuCore:
                             self.memory_condition.wait()
                     t = Thread(target=self.scheduler)
                     t.start()
-                    self.semaphore.release()
 
     def scheduler(self):
         """Scheduling algorithm using Round Robin"""
@@ -111,7 +111,6 @@ class CpuCore:
         #  Else, re-add the process to the ready queue for scheduling
         else:
             self.ready_queue.append(self.processes[pid])
-            self.scheduler()
 
     def run_op(self, pid, operation):
         """Determines operation type and executes it. Uses Round Robin algorithm"""
