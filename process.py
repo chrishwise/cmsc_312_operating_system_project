@@ -3,13 +3,19 @@ import process_control_block as pcb
 
 class Process(object):
 
-	def __init__(self, pid, memory, fn):
-		memory_req = memory
+	def __init__(self, pid, memory, pointer, fn):
+
 		clock_time_elapsed = 0
 		pc = 0
-		pointer = 0
 		registers = []
 		process_state = "NEW"
+
+		# Memory Management for paging implementation
+		memory_req = memory								# Memory required by process
+		page_size = 64 									# 64 MB, same as frame size in main memory
+		self.pages_needed = memory_req // page_size		# number of entries in process' page table
+		self.page_table = []
+
 		self.pcb = pcb.ProcessControlBlock(pointer, process_state, pid, pc, registers, memory_req, clock_time_elapsed)
 		self.operations = []
 		self.children = []
@@ -41,9 +47,6 @@ class Process(object):
 
 	def get_clock_time(self):
 		return self.pcb.clock_time
-
-	def set_program_counter(self, address):
-		self.pcb.program_counter = address
 
 	def get_time_required(self):
 		seconds = 0

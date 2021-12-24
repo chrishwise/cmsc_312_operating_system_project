@@ -1,5 +1,5 @@
 <template>
-	<memory>400</memory>
+	<memory>384</memory>
 	<operation>
 		I/O
 		<critical> 1 </critical>

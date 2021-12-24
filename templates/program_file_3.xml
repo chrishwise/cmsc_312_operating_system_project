@@ -1,5 +1,5 @@
 <template>
-	<memory>200</memory>
+	<memory>256</memory>
 	<operation>
 		CALCULATE
 		<min> 5 </min>

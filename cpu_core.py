@@ -1,98 +1,50 @@
 import random
 import threading
-
 from process import Process
 from operation import Operation
-from xml.etree import ElementTree
 from threading import *
 import time
+from main_memory import *
 
 
 class CpuCore:
     time_slice = 30
 
-    def __init__(self, window):
+    def __init__(self, window, storage):
+        """Initializes Cpu Core"""
         self.window = window
+        self.storage = storage
         # Interprocess communication method using shared data.
         # All processes share queues, semaphores, condition variables, and locks
-        self.processes = []
-        self.new_queue = []
-        self.ready_queue = []
+        self.ready_queue = []   # Register for storing process data and instruction
         self.waiting_queue = []
-        self.pid_counter = 0
-        self.memory_available = 1024
-        self.memory_lock = Lock()
-        self.memory_condition = Condition(self.memory_lock)
         self.critical_lock = Lock()
         self.semaphore = Semaphore(4)
+        self.pid_counter = 0
+        # Initialize main memory
+        self.memory = MainMemory(self.window, self.storage, self)
 
-    def generate_from_file(self, file_name):
-        """Parses the given file and adds all of its operations to a new process and adds it to processes list"""
-        tree = ElementTree.parse(file_name)
-        root = tree.getroot()
-        operations = root.findall('operation')
-        memory = int(root.find('memory').text)
-        new_process = Process(self.pid_counter, memory, file_name)
-        for o in operations:
-            critical = False        # Bug fix. critical must be set false for each operation
-            name = o.text.strip()
-            has_critical = o.find('critical')
-            if not (has_critical is None):    # Bug fix. Element.find() returns None when not found
-                critical = True
-            min_time = int(o.find('min').text)
-            max_time = int(o.find('max').text)
-            new_operation = Operation(name, min_time, max_time, critical)
-            new_process.add_operation(new_operation)
-        self.processes.append(new_process)
-        self.new_queue.append(new_process)
-        self.window.add_process(self.pid_counter)    # Adds the process to the process frame in AppWindow
-        self.pid_counter += 1
-        return new_process.get_pid()
-
-    def load_to_memory(self, pid):
-        """Adds the process to the ready queue and updates available memory if there is enough space"""
-        # Resource-request algorithm: check that requested resource is < available
-        if self.processes[pid].get_memory() < self.memory_available:
-            self.processes[pid].set_ready()
-            self.processes[pid].print()     # DEBUG
-            self.ready_queue.append(self.processes[pid])
-            self.memory_available -= self.processes[pid].get_memory()
-            self.window.log(f"\nProcess {pid} loaded into memory")
-            return True
-        else:
-            self.window.log(f"\nProcess {pid} is waiting for memory to become available")
-            return False
-
-    def load_ready_queue(self):
-        """Loads processes from new queue into ready queue until it is full. Then begins scheduling"""
-        while True:
-            # Interprocess communication method using shared data.
-            # All processes share queues, semaphores, condition variables, and locks
-            time.sleep(.01)
-            if len(self.new_queue) > 0:
-                #  Semaphore allow up to 4 threads to run concurrently.
-                with self.semaphore:
-                    process = self.new_queue.pop(0)
-                    # Deadlock avoidance algorithm - resource request algorithm
-                    with self.memory_condition:
-                        #  If there isn't enough room, wait until another thread notifies that it's exiting memory
-                        while not self.load_to_memory(process.get_pid()):
-                            self.memory_condition.wait()    # Interprocess communication using message passing
-                    t = Thread(target=self.scheduler)
-                    t.start()
+    def connect_memory(self, memory):
+        """This function must be called before scheduler"""
+        self.memory = memory
 
     def scheduler(self):
         """Scheduling algorithm using Round Robin"""
-        while len(self.ready_queue) > 0:
-            process = self.ready_queue.pop(0)           # Removes the first process from ready queue
-            pid = process.get_pid()                     # Need pid to identify process
-            self.processes[pid].set_run()               # Update process's state
-            self.window.set_running(pid)                # Update GUI
-            self.run_process(pid)                       # Run the process
+        while True:
+            # Infinite loop waits until ready queue has a process before continuing
+            time.sleep(0.01)
+            if len(self.ready_queue) > 0:
+                #  Semaphore allows up to 4 threads to run concurrently.
+                with self.semaphore:
+                    process = self.ready_queue.pop(0)           # Removes the first process from ready queue
+                    pid = process.get_pid()                     # Need pid to identify process
+                    self.storage.processes[pid].set_run()       # Update process's state
+                    self.window.set_running(pid)                # Update GUI
+                    self.run_process(pid)                       # Run the process
 
     def run_process(self, pid):
         """Runs the process and implements critical section resolving scheme"""
-        operation = self.processes[pid].operations.pop(0)
+        operation = self.storage.processes[pid].operations.pop(0)
 
         #  Critical Section resolving scheme
         if operation.is_critical():
@@ -104,17 +56,18 @@ class CpuCore:
             self.run_op(pid, operation)
 
         #  If there are no more operations to run, exit
-        if len(self.processes[pid].operations) == 0:
-            self.processes[pid].set_exit()
-            self.memory_available += self.processes[pid].get_memory()  # Free up memory
+        if len(self.storage.processes[pid].operations) == 0:
+            self.storage.processes[pid].set_exit()
+            self.memory.free_memory(pid)             # Free up memory
             self.window.set_finished(pid)            # Update GUI
-            self.window.log(f"\nProcess {pid} has finished execution in {self.processes[pid].get_clock_time()} CPU cycles")
-            with self.memory_condition:
-                self.memory_condition.notify()  # Notifies the condition variable that more memory is available
+            self.window.log(f"\nProcess {pid} has finished execution in "
+                            f"{self.storage.processes[pid].get_clock_time()} CPU cycles")
+            with self.memory.memory_condition:
+                self.memory.memory_condition.notify()  # Notifies the condition variable that more memory is available
 
         #  Else, re-add the process to the ready queue for scheduling
         else:
-            self.ready_queue.append(self.processes[pid])
+            self.ready_queue.append(self.storage.processes[pid])
 
     def run_op(self, pid, operation):
         """Determines operation type and executes it. Uses Round Robin algorithm"""
@@ -128,7 +81,7 @@ class CpuCore:
                 duration = self.time_slice
                 self.occupy_cpu(pid, duration)
                 operation.decrement_cycle_length(duration)  # Update remaining duration
-                self.processes[pid].operations.insert(0, operation)  # Re-add operation to process
+                self.storage.processes[pid].operations.insert(0, operation)  # Re-add operation to process
         elif operation.get_name() == "I/O":
             self.interrupt(pid, duration)
             self.window.log(f"\nProcess {pid} finished I/O operation")
@@ -140,7 +93,7 @@ class CpuCore:
         count = duration
         while count > 0:
             time.sleep(.01)
-            self.processes[pid].increment_clock_time(1)  # Updates process's PCB
+            self.storage.processes[pid].increment_clock_time(1)  # Updates process's PCB
 
             #  Fixed probability of eternal I/O event
             if random.random() <= 0.01:  # 1% chance
@@ -150,32 +103,32 @@ class CpuCore:
 
     def interrupt(self, pid, duration):
         """Sets the process state to wait and simulates the time for I/O operation"""
-        self.processes[pid].set_wait()
+        self.storage.processes[pid].set_wait()
         self.window.set_waiting(pid)
         time.sleep(duration * 0.01)  # Simulate the time for device driver to perform I/O operation
 
     def spawn_child(self, pid, duration):
         """Sets the process state to wait and spawns a new child process"""
-        self.processes[pid].set_wait()
+        self.storage.processes[pid].set_wait()
         self.window.set_waiting(pid)
         # Parent-child management
         # Multi-level parent-child relationship. Program file 3 spawns program file 2 which spawns program file 1
-        if self.processes[pid].file_name == 'templates/program_file_2.xml':
-            child_pid = self.generate_from_file('templates/program_file.xml')
-        elif self.processes[pid].file_name == 'templates/program_file_3.xml':
-            child_pid = self.generate_from_file('templates/program_file_2.xml')
-        self.processes[pid].add_child(self.processes[child_pid])
+        if self.storage.processes[pid].file_name == 'templates/program_file_2.xml':
+            child_pid = self.storage.generate_from_file('templates/program_file.xml')
+        elif self.storage.processes[pid].file_name == 'templates/program_file_3.xml':
+            child_pid = self.storage.generate_from_file('templates/program_file_2.xml')
+        self.storage.processes[pid].add_child(self.storage.processes[child_pid])
         self.window.update_child(child_pid, pid)   # update GUI
 
         self.window.log(f"\nProcess {child_pid} spawned from parent and added to new queue")
         time.sleep(duration * 0.01)
 
     def get_process_id(self, process):
-        return self.processes.index(process)
+        return self.storage.processes.index(process)
 
     def print(self):
         """Prints the processes with their operation list and CPU times"""
-        for p in self.processes:
+        for p in self.storage.processes:
             print("\nProcess #", self.get_process_id(p))
             for o in p.operations:
                 operation_name = o.get_name()

@@ -4,10 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="caa93e8f-e846-49c3-8509-f2a88062fa04" name="Changes" comment="Second scheduler using priority queue/shortest job first">
+    <list default="true" id="caa93e8f-e846-49c3-8509-f2a88062fa04" name="Changes" comment="Second scheduler using shortest job first">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/main_memory.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/storage.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cpu_core.py" beforeDir="false" afterPath="$PROJECT_DIR$/cpu_core.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/priority_cpu_core.py" beforeDir="false" afterPath="$PROJECT_DIR$/priority_cpu_core.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/process.py" beforeDir="false" afterPath="$PROJECT_DIR$/process.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/program_file.xml" beforeDir="false" afterPath="$PROJECT_DIR$/templates/program_file.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/program_file_2.xml" beforeDir="false" afterPath="$PROJECT_DIR$/templates/program_file_2.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/program_file_3.xml" beforeDir="false" afterPath="$PROJECT_DIR$/templates/program_file_3.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,21 +46,22 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunManager">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="cmsc_312_operating_system_project" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="" />
+      <option name="SDK_HOME" value="C:\Users\leahr\PycharmProjects\cmsc_312_operating_system_project\venv\Scripts\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -127,7 +135,14 @@
       <option name="project" value="LOCAL" />
       <updated>1640152230130</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Second scheduler using shortest job first">
+      <created>1640156311997</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1640156311997</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -149,6 +164,7 @@
     <MESSAGE value="New comments highlight 2 interprocess communication methods" />
     <MESSAGE value="Multi-level parent child relationships" />
     <MESSAGE value="Second scheduler using priority queue/shortest job first" />
-    <option name="LAST_COMMIT_MESSAGE" value="Second scheduler using priority queue/shortest job first" />
+    <MESSAGE value="Second scheduler using shortest job first" />
+    <option name="LAST_COMMIT_MESSAGE" value="Second scheduler using shortest job first" />
   </component>
 </project>
