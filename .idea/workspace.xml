@@ -4,17 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="caa93e8f-e846-49c3-8509-f2a88062fa04" name="Changes" comment="Second scheduler using shortest job first">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main_memory.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/storage.py" afterDir="false" />
+    <list default="true" id="caa93e8f-e846-49c3-8509-f2a88062fa04" name="Changes" comment="Paging table is fully functional on the GUI">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cpu_core.py" beforeDir="false" afterPath="$PROJECT_DIR$/cpu_core.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/process.py" beforeDir="false" afterPath="$PROJECT_DIR$/process.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/program_file.xml" beforeDir="false" afterPath="$PROJECT_DIR$/templates/program_file.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/program_file_2.xml" beforeDir="false" afterPath="$PROJECT_DIR$/templates/program_file_2.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/program_file_3.xml" beforeDir="false" afterPath="$PROJECT_DIR$/templates/program_file_3.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -142,7 +134,14 @@
       <option name="project" value="LOCAL" />
       <updated>1640156311997</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Paging table is fully functional on the GUI">
+      <created>1640304483340</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1640304483340</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -165,6 +164,7 @@
     <MESSAGE value="Multi-level parent child relationships" />
     <MESSAGE value="Second scheduler using priority queue/shortest job first" />
     <MESSAGE value="Second scheduler using shortest job first" />
-    <option name="LAST_COMMIT_MESSAGE" value="Second scheduler using shortest job first" />
+    <MESSAGE value="Paging table is fully functional on the GUI" />
+    <option name="LAST_COMMIT_MESSAGE" value="Paging table is fully functional on the GUI" />
   </component>
 </project>

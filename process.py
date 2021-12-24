@@ -20,6 +20,7 @@ class Process(object):
 		self.operations = []
 		self.children = []
 		self.file_name = fn
+		self.priority = 0
 
 	def add_operation(self, operation):
 		self.operations.append(operation)
